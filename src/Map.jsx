@@ -71,14 +71,7 @@ const Map = () => {
       zoom: 6.5,
     });
 
-    console.log(map.current)
-
     map.current.addControl(new mapboxgl.NavigationControl());
-
-    // return () => {
-    //   if (map.current) map.current.remove();
-    //   document.head.removeChild(link);
-    // };
   }, []);
 
   useEffect(() => {
@@ -135,7 +128,6 @@ const Map = () => {
 
   return (
     <>
-    Hello world!
       <input type="file" id="fileInput" multiple />
       <div ref={mapDiv} style={{ width: '100%', height: '100vh' }} />
     </>
