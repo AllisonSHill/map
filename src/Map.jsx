@@ -55,7 +55,6 @@ const Map = () => {
   }, []);
 
   useEffect(() => {
-    console.log('here')
     // Dynamically add Mapbox CSS
     const link = document.createElement('link');
     link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css';
@@ -72,12 +71,14 @@ const Map = () => {
       zoom: 6.5,
     });
 
+    console.log(map.current)
+
     map.current.addControl(new mapboxgl.NavigationControl());
 
-    return () => {
-      if (map.current) map.current.remove();
-      document.head.removeChild(link);
-    };
+    // return () => {
+    //   if (map.current) map.current.remove();
+    //   document.head.removeChild(link);
+    // };
   }, []);
 
   useEffect(() => {
