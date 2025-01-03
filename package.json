@@ -6,6 +6,7 @@
   "dependencies": {
     "cra-template": "1.2.0",
     "exifreader": "^4.26.0",
+    "gh-pages": "^6.3.0",
     "mapbox-gl": "^3.9.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -38,5 +39,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "babel": {
+    "plugins": [
+      "@babel/plugin-proposal-private-property-in-object"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }
