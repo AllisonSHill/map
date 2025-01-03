@@ -135,6 +135,7 @@ const Map = () => {
 
   return (
     <>
+    Hello world!
       <input type="file" id="fileInput" multiple />
       <div ref={mapDiv} style={{ width: '100%', height: '100vh' }} />
     </>
