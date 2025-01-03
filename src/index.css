@@ -11,3 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.mapboxgl-popup-content {
+  width: 320px !important; /* Increase width */
+  max-width: none !important; /* Allow larger popups */
+  padding: 10px !important; /* Extra padding around the content */
+}
