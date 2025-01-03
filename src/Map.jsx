@@ -8,53 +8,6 @@ const Map = () => {
   const [features, setFeatures] = useState([])
 
   useEffect(() => {
-    const fileInput = document.getElementById('fileInput');
-    const handleFileChange = async (event) => {
-      const files = event.target.files;
-      const theFeatures = [];
-
-      for (const file of files) {
-        if (!file.type.startsWith('image/')) continue;
-
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const exifData = ExifReader.load(arrayBuffer);
-        //   console.log(`EXIF data for ${file.name}:`, exifData);
-          const imageUrl = URL.createObjectURL(file);
-
-          const formattedDate = exifData['DateTimeOriginal']?.description
-            ? new Date(`${exifData['DateTimeOriginal']?.description.split(' ')[0].replace(/:/g, '-')} ${exifData['DateTimeOriginal']?.description.split(' ')[1]}`).toLocaleString('en-US')
-            : 'Date not available'
-
-          // Create GeoJSON feature from EXIF coordinates
-          if (exifData['GPSLongitude']?.description) {theFeatures.push({
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [
-                -exifData['GPSLongitude']?.description || 0,
-                exifData['GPSLatitude']?.description || 0
-              ]
-            },
-            properties: {
-                image: imageUrl,
-                date: formattedDate
-            }
-          });} else {
-            console.log('NO DATA, ', file.name, formattedDate)
-          }
-        } catch (error) {
-          console.error(`Error reading EXIF data from ${file.name}:`, error);
-        }
-      }
-      setFeatures(theFeatures);
-    };
-
-    fileInput.addEventListener('change', handleFileChange);
-    return () => fileInput.removeEventListener('change', handleFileChange);
-  }, []);
-
-  useEffect(() => {
     // Dynamically add Mapbox CSS
     const link = document.createElement('link');
     link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css';
@@ -74,9 +27,68 @@ const Map = () => {
     map.current.addControl(new mapboxgl.NavigationControl());
   }, []);
 
+  const fetchImagesAsArrayBuffer = async () => {
+    const apiUrl = `https://api.github.com/repos/allisonshill/map/contents/public/images`;
+    try {
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        const buffers = await Promise.all(
+          data
+            .map(async (file) => {
+              const imageResponse = await fetch(file.download_url);
+              if (!imageResponse.ok) throw new Error(`Failed to fetch ${file.name}`);
+              return imageResponse.arrayBuffer(); // Convert the response to ArrayBuffer
+            })
+        );
+        const theFeatures = [];
+        for (const [i, buffer] of buffers.entries()) {
+          const exifData = ExifReader.load(buffer);
+  
+          // Assuming `data` is the original array from the API
+          const file = data[i];
+          const imageUrl = URL.createObjectURL(new Blob([buffer]));
+  
+          const formattedDate = exifData['DateTimeOriginal']?.description
+            ? new Date(`${exifData['DateTimeOriginal']?.description.split(' ')[0].replace(/:/g, '-')} ${exifData['DateTimeOriginal']?.description.split(' ')[1]}`).toLocaleString('en-US')
+            : 'Date not available';
+  
+          // Create GeoJSON feature from EXIF coordinates
+          if (exifData['GPSLongitude']?.description) {
+            theFeatures.push({
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [
+                  -exifData['GPSLongitude']?.description || 0,
+                  exifData['GPSLatitude']?.description || 0
+                ]
+              },
+              properties: {
+                image: imageUrl,
+                date: formattedDate
+              }
+            });
+          } else {
+            console.log('NO DATA:', file.name, formattedDate);
+          }
+        }
+        console.log(theFeatures)
+        setFeatures(theFeatures)
+      } else {
+        console.error('Failed to fetch image list:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchImagesAsArrayBuffer();
+  }, []);
+
   useEffect(() => {
     if (map.current && features.length) {
-        console.log('loading features', features)
       const source = map.current.getSource('points');
       if (source) {
         source.setData({
@@ -128,7 +140,6 @@ const Map = () => {
 
   return (
     <>
-      <input type="file" id="fileInput" multiple />
       <div ref={mapDiv} style={{ width: '100%', height: '100vh' }} />
     </>
   );
